@@ -14,34 +14,40 @@
         font-family: Arial, sans-serif;
         margin: 0;
         padding: 20px;
-        background: #f2f2f2;
+        background: #e8d2a8;
+        color: #3b2818;
     }
 
     h1 {
         text-align: center;
-        font-size: 26px;
+        font-size: 27px;
         margin: 0 0 25px 0;
+        color: #5a321c;
+        font-weight: bold;
     }
 
     .conteneur {
         display: flex;
         gap: 25px;
-        max-width: 800px;
+        max-width: 850px;
         margin: auto;
         align-items: flex-start;
     }
 
     /* TABLEAU DES UNITÉS */
+
     .tableau {
         flex: 1;
-        border: 1px solid #aaa;
-        background: white;
+        border: 2px solid #9b7046;
+        background: #f3dfb9;
+        border-radius: 3px;
+        overflow: hidden;
     }
 
     .ligne {
         display: grid;
         grid-template-columns: 1fr 100px;
-        border-bottom: 1px solid #ddd;
+        border-bottom: 1px solid #c6a77b;
         min-height: 42px;
         align-items: center;
     }
@@ -50,8 +56,17 @@
         border-bottom: none;
     }
 
+    .ligne:nth-child(odd) {
+        background: #ead2a7;
+    }
+
+    .ligne:nth-child(even) {
+        background: #f4e2c1;
+    }
+
     .nom-unite {
         padding: 7px 10px;
+        font-size: 15px;
     }
 
     .quantite {
@@ -60,25 +75,43 @@
         margin: auto;
         text-align: center;
         font-size: 16px;
+        border: 1px solid #b99a6c;
+        border-radius: 4px;
+        background: #fffaf0;
+        color: #3b2818;
     }
 
     /* PARTIE DROITE */
+
     .droite {
-        width: 230px;
+        width: 245px;
     }
 
     .titre-section {
         font-size: 19px;
         font-weight: bold;
         margin-bottom: 10px;
+        color: #5a321c;
     }
 
     .temps {
         display: flex;
-        align-items: center;
         justify-content: center;
         gap: 5px;
         margin-bottom: 20px;
+    }
+
+    .champ-temps {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .label-temps {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #5a321c;
     }
 
     .temps input {
@@ -86,30 +119,47 @@
         height: 40px;
         text-align: center;
         font-size: 17px;
+        border: 1px solid #b99a6c;
+        border-radius: 4px;
+        background: #fffaf0;
+        color: #3b2818;
     }
 
     .separateur {
         font-size: 20px;
         font-weight: bold;
+        margin-top: 27px;
+        color: #5a321c;
     }
 
     .bouton {
         width: 100%;
         height: 45px;
         font-size: 17px;
+        font-weight: bold;
         cursor: pointer;
+        border: 1px solid #315d32;
+        border-radius: 4px;
+        background: #4f8a52;
+        color: white;
     }
+
+    .bouton:hover {
+        background: #417544;
+    }
+
+    /* RÉSULTAT */
 
     #resultat {
         margin-top: 20px;
-        padding: 12px;
-        background: white;
-        border: 1px solid #aaa;
-        font-size: 18px;
+        font-size: 19px;
         line-height: 1.6;
+        font-weight: bold;
+        color: #5a321c;
     }
 
     @media (max-width: 650px) {
+
         body {
             padding: 12px;
         }
@@ -123,19 +173,31 @@
         }
 
         .ligne {
-            grid-template-columns: 1fr 75px;
+            grid-template-columns: 1fr 70px;
         }
 
         .quantite {
-            width: 65px;
+            width: 62px;
         }
 
         .nom-unite {
             font-size: 14px;
         }
 
+        .temps {
+            gap: 2px;
+        }
+
         .temps input {
             width: 48px;
+        }
+
+        .label-temps {
+            font-size: 12px;
+        }
+
+        .separateur {
+            font-size: 18px;
         }
     }
 </style>
@@ -154,13 +216,26 @@
         <div class="titre-section">Temps</div>
 
         <div class="temps">
-            <input id="heures" type="number" min="0" step="1" value="0">
+
+            <div class="champ-temps">
+                <div class="label-temps">Heure</div>
+                <input id="heures" type="number" min="0" step="1" value="0">
+            </div>
+
             <span class="separateur">:</span>
 
-            <input id="minutes" type="number" min="0" max="59" step="1" value="0">
+            <div class="champ-temps">
+                <div class="label-temps">Minute</div>
+                <input id="minutes" type="number" min="0" max="59" step="1" value="0">
+            </div>
+
             <span class="separateur">:</span>
 
-            <input id="secondes" type="number" min="0" max="59" step="1" value="0">
+            <div class="champ-temps">
+                <div class="label-temps">Seconde</div>
+                <input id="secondes" type="number" min="0" max="59" step="1" value="0">
+            </div>
+
         </div>
 
         <button class="bouton" onclick="calculer()">Calculer</button>
@@ -170,6 +245,7 @@
     </div>
 
 </div>
+
 
 <script>
 
@@ -202,8 +278,6 @@ const unites = [
 
 const donnees = unites.map(unite => ({
     nom: unite[0],
-
-    // Temps de base au TDP 0
     base: unite[1] / Math.pow(0.95, unite[2])
 }));
 
@@ -239,18 +313,28 @@ donnees.forEach((unite, index) => {
 
 
 /* =========================================================
-   CALCUL DU TDP
+   CALCUL
    ========================================================= */
 
 function calculer() {
 
-    const heures = Number(document.getElementById("heures").value) || 0;
-    const minutes = Number(document.getElementById("minutes").value) || 0;
-    const secondes = Number(document.getElementById("secondes").value) || 0;
+    const heures =
+        Number(document.getElementById("heures").value) || 0;
 
-    const duree = heures * 3600 + minutes * 60 + secondes;
+    const minutes =
+        Number(document.getElementById("minutes").value) || 0;
 
-    const resultat = document.getElementById("resultat");
+    const secondes =
+        Number(document.getElementById("secondes").value) || 0;
+
+    const duree =
+        heures * 3600 +
+        minutes * 60 +
+        secondes;
+
+    const resultat =
+        document.getElementById("resultat");
+
 
     if (duree <= 0) {
         resultat.innerHTML = "";
@@ -258,24 +342,24 @@ function calculer() {
     }
 
 
-    /*
-       On récupère uniquement les unités dont la quantité
-       observée est supérieure à 0.
-    */
+    /* Récupération des unités observées */
 
     const observations = [];
 
     donnees.forEach((unite, index) => {
 
-        const quantite = Number(
-            document.getElementById("unite-" + index).value
-        ) || 0;
+        const quantite =
+            Number(
+                document.getElementById("unite-" + index).value
+            ) || 0;
 
         if (quantite > 0) {
+
             observations.push({
                 unite: unite,
                 quantite: quantite
             });
+
         }
     });
 
@@ -287,57 +371,8 @@ function calculer() {
 
 
     /* =====================================================
-       ESTIMATION DU TDP
-       =====================================================
-
-       Pour une unité :
-
-       quantité = durée / (temps_base × 0,95^TDP)
-
-       donc :
-
-       TDP =
-       ln(durée / (quantité × temps_base))
-       / ln(0,95)
-
-       On calcule cette valeur pour chaque unité puis
-       on cherche la meilleure valeur commune.
-    */
-
-
-    const estimations = [];
-
-    observations.forEach(observation => {
-
-        const base = observation.unite.base;
-        const q = observation.quantite;
-
-        const tdp = Math.log(
-            duree / (q * base)
-        ) / Math.log(0.95);
-
-        if (Number.isFinite(tdp)) {
-            estimations.push({
-                valeur: tdp,
-                unite: observation.unite.nom
-            });
-        }
-    });
-
-
-    if (estimations.length === 0) {
-        resultat.innerHTML = "";
-        return;
-    }
-
-
-    /* =====================================================
-       MEILLEUR TDP
-       =====================================================
-
-       On cherche le TDP qui minimise l'écart entre les
-       quantités observées et les quantités théoriques.
-    */
+       ERREUR POUR UN TDP DONNÉ
+       ===================================================== */
 
     function erreur(tdp) {
 
@@ -349,7 +384,8 @@ function calculer() {
                 observation.unite.base *
                 Math.pow(0.95, tdp);
 
-            const theorique = duree / temps;
+            const theorique =
+                duree / temps;
 
             total += Math.pow(
                 theorique - observation.quantite,
@@ -361,109 +397,91 @@ function calculer() {
     }
 
 
+    /* =====================================================
+       RECHERCHE DU TDP LE PLUS PROBABLE
+       ===================================================== */
+
     let meilleurTdp = 0;
     let meilleureErreur = Infinity;
 
-
-    /*
-       Première recherche : 0 à 200 avec un pas de 0,01.
-    */
-
-    for (let tdp = 0; tdp <= 200; tdp += 0.01) {
+    for (
+        let tdp = 0;
+        tdp <= 200;
+        tdp += 0.01
+    ) {
 
         const e = erreur(tdp);
 
         if (e < meilleureErreur) {
+
             meilleureErreur = e;
             meilleurTdp = tdp;
+
         }
     }
 
 
     /* =====================================================
-       ENCADREMENT
-       =====================================================
-
-       L'incertitude vient du fait que les quantités sont
-       entières.
-
-       Pour une quantité observée Q, on considère que la
-       quantité réelle compatible est approximativement :
-
-           Q - 0,5  à  Q + 0,5
-
-       On transforme ces limites en limites de TDP.
-
-       On cherche ensuite l'intersection des intervalles
-       de toutes les unités.
-    */
+       ENCADREMENT DÛ AUX QUANTITÉS ENTIÈRES
+       ===================================================== */
 
     let limiteBasse = -Infinity;
     let limiteHaute = Infinity;
+
 
     observations.forEach(observation => {
 
         const base = observation.unite.base;
         const q = observation.quantite;
 
-        const qMin = Math.max(0.000001, q - 0.5);
-        const qMax = q + 0.5;
-
-
         /*
-           Comme la quantité produite augmente quand le TDP
-           augmente, qMin donne la borne basse et qMax
-           la borne haute après inversion de la formule.
+           Une quantité entière Q correspond à une quantité
+           réelle comprise entre Q-0,5 et Q+0,5.
         */
 
-        const tdpAvecQMax = Math.log(
-            duree / (qMax * base)
-        ) / Math.log(0.95);
+        const qMin =
+            Math.max(0.000001, q - 0.5);
 
-        const tdpAvecQMin = Math.log(
-            duree / (qMin * base)
-        ) / Math.log(0.95);
+        const qMax =
+            q + 0.5;
 
 
-        const bas = Math.min(
-            tdpAvecQMax,
-            tdpAvecQMin
-        );
-
-        const haut = Math.max(
-            tdpAvecQMax,
-            tdpAvecQMin
-        );
+        const tdpBasse =
+            Math.log(
+                duree / (qMax * base)
+            ) / Math.log(0.95);
 
 
-        limiteBasse = Math.max(
-            limiteBasse,
-            bas
-        );
+        const tdpHaute =
+            Math.log(
+                duree / (qMin * base)
+            ) / Math.log(0.95);
 
-        limiteHaute = Math.min(
-            limiteHaute,
-            haut
-        );
+
+        const bas =
+            Math.min(tdpBasse, tdpHaute);
+
+        const haut =
+            Math.max(tdpBasse, tdpHaute);
+
+
+        limiteBasse =
+            Math.max(limiteBasse, bas);
+
+        limiteHaute =
+            Math.min(limiteHaute, haut);
     });
 
 
-    /*
-       Si les intervalles ne se croisent pas exactement,
-       on utilise l'estimation la plus probable et son
-       incertitude locale.
-    */
+    /* =====================================================
+       SI LES INTERVALLES NE SE CROISENT PAS
+       ===================================================== */
 
     if (
         !Number.isFinite(limiteBasse) ||
         !Number.isFinite(limiteHaute) ||
         limiteBasse > limiteHaute
     ) {
-
-        /*
-           On prend l'incertitude de l'unité qui donne
-           l'intervalle le plus petit autour du meilleur TDP.
-        */
 
         let incertitude = Infinity;
 
@@ -472,29 +490,41 @@ function calculer() {
             const base = observation.unite.base;
             const q = observation.quantite;
 
-            const bas = Math.log(
-                duree / ((q + 0.5) * base)
-            ) / Math.log(0.95);
 
-            const haut = Math.log(
-                duree / (Math.max(0.000001, q - 0.5) * base)
-            ) / Math.log(0.95);
+            const bas =
+                Math.log(
+                    duree / ((q + 0.5) * base)
+                ) / Math.log(0.95);
 
-            const largeur = Math.abs(haut - bas);
+
+            const haut =
+                Math.log(
+                    duree /
+                    (Math.max(0.000001, q - 0.5) * base)
+                ) / Math.log(0.95);
+
+
+            const largeur =
+                Math.abs(haut - bas);
+
 
             if (largeur < incertitude) {
                 incertitude = largeur;
             }
+
         });
 
 
-        limiteBasse = meilleurTdp - incertitude / 2;
-        limiteHaute = meilleurTdp + incertitude / 2;
+        limiteBasse =
+            meilleurTdp - incertitude / 2;
+
+        limiteHaute =
+            meilleurTdp + incertitude / 2;
     }
 
 
     /* =====================================================
-       AFFICHAGE AVEC CHIFFRES SIGNIFICATIFS
+       ARRONDI DES CHIFFRES SIGNIFICATIFS
        ===================================================== */
 
     function formatTdp(valeur) {
@@ -504,49 +534,54 @@ function calculer() {
         }
 
         /*
-           On garde suffisamment de chiffres pour que
-           l'encadrement soit réellement utile, sans
-           afficher une quantité absurde de décimales.
+           Deux décimales permettent de conserver
+           suffisamment de précision pour l'encadrement.
         */
-
-        if (Math.abs(valeur) >= 100) {
-            return valeur.toFixed(1);
-        }
-
-        if (Math.abs(valeur) >= 10) {
-            return valeur.toFixed(2);
-        }
 
         return valeur.toFixed(2);
     }
 
 
-    const borneBasse = Math.min(
-        limiteBasse,
-        limiteHaute
-    );
+    const borneBasse =
+        Math.min(limiteBasse, limiteHaute);
 
-    const borneHaute = Math.max(
-        limiteBasse,
-        limiteHaute
-    );
+    const borneHaute =
+        Math.max(limiteBasse, limiteHaute);
 
+
+    const valeurProbable =
+        Math.round(meilleurTdp);
+
+
+    /* =====================================================
+       AFFICHAGE
+       ===================================================== */
 
     /*
-       La valeur probable est arrondie à l'unité.
+       Si les deux bornes donnent le même nombre entier,
+       on affiche simplement TDP.
     */
 
-    const valeurProbable = Math.round(meilleurTdp);
+    const entierBasse = Math.floor(borneBasse);
+    const entierHaute = Math.ceil(borneHaute);
 
 
-    resultat.innerHTML =
-        "TDP : " +
-        formatTdp(borneBasse) +
-        " - " +
-        formatTdp(borneHaute) +
-        "<br>" +
-        "Valeur probable : " +
-        valeurProbable;
+    if (entierBasse === entierHaute) {
+
+        resultat.innerHTML =
+            "TDP : " + entierBasse;
+
+    } else {
+
+        resultat.innerHTML =
+            "TDP : " +
+            entierBasse +
+            "-" +
+            entierHaute +
+            "<br>" +
+            "Valeur probable : " +
+            valeurProbable;
+    }
 }
 
 </script>
