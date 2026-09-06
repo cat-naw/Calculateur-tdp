@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calculateur de TDP</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:520px;margin:25px auto;padding:0 16px}
+h1{font-size:24px}
+label{display:block;margin:10px 0 4px}
+input{width:100%;box-sizing:border-box;padding:8px;font-size:16px}
+button{margin-top:16px;padding:9px 18px;font-size:16px}
+#result{margin-top:20px;font-size:20px;font-weight:bold}
+</style>
+</head>
+<body>
+<h1>Calculateur de TDP</h1>
+
+<label for="minutes">Temps (minutes)</label>
+<input id="minutes" type="number" min="0" step="1">
+
+<div id="units"></div>
+
+<button onclick="calculate()">Calculer</button>
+<div id="result"></div>
+
+<script>
+const units = [
+  ["Esclave",4.4299,83],
+  ["Maître esclave",6.6448,83],
+  ["Jeune soldate",7.7523,83],
+  ["Soldate",9.9672,83],
+  ["Soldate d’élite",13.2897,83],
+  ["Gardienne",13.2897,83],
+  ["Gardienne d’elite",17.7195,83],
+  ["Tirailleuse",15.5046,83],
+  ["Tirailleuse d'élite",19.9345,83],
+  ["Jeune légionnaire",24.3644,83],
+  ["Légionnaire",33.2241,83],
+  ["Légionnaire d’elite",38.7615,83],
+  ["Jeune tank",39.8690,83],
+  ["Tank",47.4629,93],
+  ["Tank d’elite",58.3315,93]
+];
+
+const container=document.getElementById("units");
+units.forEach((u,i)=>{
+  const label=document.createElement("label");
+  label.htmlFor="u"+i;
+  label.textContent=u[0];
+  const input=document.createElement("input");
+  input.id="u"+i;
+  input.type="number";
+  input.min="0";
+  input.step="1";
+  input.placeholder="0";
+  container.appendChild(label);
+  container.appendChild(input);
+});
+
+// Temps de base calculés à partir des temps fournis aux TDP indiqués.
+const data=units.map(u=>({
+  name:u[0],
+  base:u[1]/Math.pow(0.95,u[2])
+}));
+
+function predictedCount(base,n,minutes){
+  const t=base*Math.pow(0.95,n);
+  return minutes*60/t;
+}
+
+function calculate(){
+  const m=parseFloat(document.getElementById("minutes").value);
+  const result=document.getElementById("result");
+  if(!Number.isFinite(m)||m<=0){
+    result.textContent="";
+    return;
+  }
+
+  const observations=[];
+  data.forEach((u,i)=>{
+    const count=parseInt(document.getElementById("u"+i).value,10);
+    if(Number.isFinite(count)&&count>0) observations.push({u,count});
+  });
+
+  if(!observations.length){
+    result.textContent="";
+    return;
+  }
+
+  // Pour chaque niveau, on cherche l'erreur totale entre le nombre observé
+  // et le nombre théorique produit pendant l'intervalle.
+  let scores=[];
+  for(let n=0;n<=200;n++){
+    let error=0;
+    observations.forEach(o=>{
+      const p=predictedCount(o.u.base,n,m);
+      error += Math.pow(p-o.count,2);
+    });
+    scores.push({n,error});
+  }
+
+  scores.sort((a,b)=>a.error-b.error);
+  const best=scores[0].n;
+
+  // Encadrement : niveaux dont l'erreur est compatible avec l'incertitude
+  // d'une unité de production par observation.
+  const compatible=[];
+  for(let n=0;n<=200;n++){
+    let ok=true;
+    observations.forEach(o=>{
+      const p=predictedCount(o.u.base,n,m);
+      if(Math.abs(p-o.count)>1.05) ok=false;
+    });
+    if(ok) compatible.push(n);
+  }
+
+  if(compatible.length){
+    const lo=Math.min(...compatible), hi=Math.max(...compatible);
+    result.innerHTML = lo===hi
+      ? `TDP : ${lo}<br>Valeur probable : ${best}`
+      : `TDP : ${lo}-${hi}<br>Valeur probable : ${best}`;
+  }else{
+    // Si aucune valeur ne satisfait toutes les unités, on donne une
+    // approximation centrée sur le meilleur ajustement.
+    const nearby=scores.filter(x=>x.error<=scores[0].error+1.5).map(x=>x.n);
+    const lo=Math.min(...nearby),hi=Math.max(...nearby);
+    result.innerHTML = lo===hi
+      ? `TDP : ≈${lo}<br>Valeur probable : ${best}`
+      : `TDP : ≈${lo}-${hi}<br>Valeur probable : ${best}`;
+  }
+}
+</script>
+</body>
+</html>
