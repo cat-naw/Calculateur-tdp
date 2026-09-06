@@ -2,134 +2,554 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calculateur de TDP</title>
+
 <style>
-body{font-family:Arial,sans-serif;max-width:520px;margin:25px auto;padding:0 16px}
-h1{font-size:24px}
-label{display:block;margin:10px 0 4px}
-input{width:100%;box-sizing:border-box;padding:8px;font-size:16px}
-button{margin-top:16px;padding:9px 18px;font-size:16px}
-#result{margin-top:20px;font-size:20px;font-weight:bold}
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: #f2f2f2;
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 26px;
+        margin: 0 0 25px 0;
+    }
+
+    .conteneur {
+        display: flex;
+        gap: 25px;
+        max-width: 800px;
+        margin: auto;
+        align-items: flex-start;
+    }
+
+    /* TABLEAU DES UNITÉS */
+    .tableau {
+        flex: 1;
+        border: 1px solid #aaa;
+        background: white;
+    }
+
+    .ligne {
+        display: grid;
+        grid-template-columns: 1fr 100px;
+        border-bottom: 1px solid #ddd;
+        min-height: 42px;
+        align-items: center;
+    }
+
+    .ligne:last-child {
+        border-bottom: none;
+    }
+
+    .nom-unite {
+        padding: 7px 10px;
+    }
+
+    .quantite {
+        width: 90px;
+        height: 32px;
+        margin: auto;
+        text-align: center;
+        font-size: 16px;
+    }
+
+    /* PARTIE DROITE */
+    .droite {
+        width: 230px;
+    }
+
+    .titre-section {
+        font-size: 19px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .temps {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        margin-bottom: 20px;
+    }
+
+    .temps input {
+        width: 62px;
+        height: 40px;
+        text-align: center;
+        font-size: 17px;
+    }
+
+    .separateur {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .bouton {
+        width: 100%;
+        height: 45px;
+        font-size: 17px;
+        cursor: pointer;
+    }
+
+    #resultat {
+        margin-top: 20px;
+        padding: 12px;
+        background: white;
+        border: 1px solid #aaa;
+        font-size: 18px;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 650px) {
+        body {
+            padding: 12px;
+        }
+
+        .conteneur {
+            gap: 12px;
+        }
+
+        .droite {
+            width: 180px;
+        }
+
+        .ligne {
+            grid-template-columns: 1fr 75px;
+        }
+
+        .quantite {
+            width: 65px;
+        }
+
+        .nom-unite {
+            font-size: 14px;
+        }
+
+        .temps input {
+            width: 48px;
+        }
+    }
 </style>
 </head>
+
 <body>
+
 <h1>Calculateur de TDP</h1>
 
-<label for="minutes">Temps (minutes)</label>
-<input id="minutes" type="number" min="0" step="1">
+<div class="conteneur">
 
-<div id="units"></div>
+    <div class="tableau" id="tableauUnites"></div>
 
-<button onclick="calculate()">Calculer</button>
-<div id="result"></div>
+    <div class="droite">
+
+        <div class="titre-section">Temps</div>
+
+        <div class="temps">
+            <input id="heures" type="number" min="0" step="1" value="0">
+            <span class="separateur">:</span>
+
+            <input id="minutes" type="number" min="0" max="59" step="1" value="0">
+            <span class="separateur">:</span>
+
+            <input id="secondes" type="number" min="0" max="59" step="1" value="0">
+        </div>
+
+        <button class="bouton" onclick="calculer()">Calculer</button>
+
+        <div id="resultat"></div>
+
+    </div>
+
+</div>
 
 <script>
-const units = [
-  ["Esclave",4.4299,83],
-  ["Maître esclave",6.6448,83],
-  ["Jeune soldate",7.7523,83],
-  ["Soldate",9.9672,83],
-  ["Soldate d’élite",13.2897,83],
-  ["Gardienne",13.2897,83],
-  ["Gardienne d’elite",17.7195,83],
-  ["Tirailleuse",15.5046,83],
-  ["Tirailleuse d'élite",19.9345,83],
-  ["Jeune légionnaire",24.3644,83],
-  ["Légionnaire",33.2241,83],
-  ["Légionnaire d’elite",38.7615,83],
-  ["Jeune tank",39.8690,83],
-  ["Tank",47.4629,93],
-  ["Tank d’elite",58.3315,93]
+
+/* =========================================================
+   UNITÉS
+   ========================================================= */
+
+const unites = [
+    ["Esclave", 4.4299, 83],
+    ["Maître esclave", 6.6448, 83],
+    ["Jeune soldate", 7.7523, 83],
+    ["Soldate", 9.9672, 83],
+    ["Soldate d'élite", 13.2897, 83],
+    ["Gardienne", 13.2897, 83],
+    ["Gardienne d'élite", 17.7195, 83],
+    ["Tirailleuse", 15.5046, 83],
+    ["Tirailleuse d'élite", 19.9345, 83],
+    ["Jeune légionnaire", 24.3644, 83],
+    ["Légionnaire", 33.2241, 83],
+    ["Légionnaire d'élite", 38.7615, 83],
+    ["Jeune tank", 39.8690, 83],
+    ["Tank", 47.4629, 93],
+    ["Tank d'élite", 58.3315, 93]
 ];
 
-const container=document.getElementById("units");
-units.forEach((u,i)=>{
-  const label=document.createElement("label");
-  label.htmlFor="u"+i;
-  label.textContent=u[0];
-  const input=document.createElement("input");
-  input.id="u"+i;
-  input.type="number";
-  input.min="0";
-  input.step="1";
-  input.placeholder="0";
-  container.appendChild(label);
-  container.appendChild(input);
-});
 
-// Temps de base calculés à partir des temps fournis aux TDP indiqués.
-const data=units.map(u=>({
-  name:u[0],
-  base:u[1]/Math.pow(0.95,u[2])
+/* =========================================================
+   CALCUL DES TEMPS DE BASE
+   ========================================================= */
+
+const donnees = unites.map(unite => ({
+    nom: unite[0],
+
+    // Temps de base au TDP 0
+    base: unite[1] / Math.pow(0.95, unite[2])
 }));
 
-function predictedCount(base,n,minutes){
-  const t=base*Math.pow(0.95,n);
-  return minutes*60/t;
+
+/* =========================================================
+   CRÉATION DU TABLEAU
+   ========================================================= */
+
+const tableau = document.getElementById("tableauUnites");
+
+donnees.forEach((unite, index) => {
+
+    const ligne = document.createElement("div");
+    ligne.className = "ligne";
+
+    const nom = document.createElement("div");
+    nom.className = "nom-unite";
+    nom.textContent = unite.nom;
+
+    const input = document.createElement("input");
+    input.className = "quantite";
+    input.type = "number";
+    input.min = "0";
+    input.step = "1";
+    input.value = "0";
+    input.id = "unite-" + index;
+
+    ligne.appendChild(nom);
+    ligne.appendChild(input);
+
+    tableau.appendChild(ligne);
+});
+
+
+/* =========================================================
+   CALCUL DU TDP
+   ========================================================= */
+
+function calculer() {
+
+    const heures = Number(document.getElementById("heures").value) || 0;
+    const minutes = Number(document.getElementById("minutes").value) || 0;
+    const secondes = Number(document.getElementById("secondes").value) || 0;
+
+    const duree = heures * 3600 + minutes * 60 + secondes;
+
+    const resultat = document.getElementById("resultat");
+
+    if (duree <= 0) {
+        resultat.innerHTML = "";
+        return;
+    }
+
+
+    /*
+       On récupère uniquement les unités dont la quantité
+       observée est supérieure à 0.
+    */
+
+    const observations = [];
+
+    donnees.forEach((unite, index) => {
+
+        const quantite = Number(
+            document.getElementById("unite-" + index).value
+        ) || 0;
+
+        if (quantite > 0) {
+            observations.push({
+                unite: unite,
+                quantite: quantite
+            });
+        }
+    });
+
+
+    if (observations.length === 0) {
+        resultat.innerHTML = "";
+        return;
+    }
+
+
+    /* =====================================================
+       ESTIMATION DU TDP
+       =====================================================
+
+       Pour une unité :
+
+       quantité = durée / (temps_base × 0,95^TDP)
+
+       donc :
+
+       TDP =
+       ln(durée / (quantité × temps_base))
+       / ln(0,95)
+
+       On calcule cette valeur pour chaque unité puis
+       on cherche la meilleure valeur commune.
+    */
+
+
+    const estimations = [];
+
+    observations.forEach(observation => {
+
+        const base = observation.unite.base;
+        const q = observation.quantite;
+
+        const tdp = Math.log(
+            duree / (q * base)
+        ) / Math.log(0.95);
+
+        if (Number.isFinite(tdp)) {
+            estimations.push({
+                valeur: tdp,
+                unite: observation.unite.nom
+            });
+        }
+    });
+
+
+    if (estimations.length === 0) {
+        resultat.innerHTML = "";
+        return;
+    }
+
+
+    /* =====================================================
+       MEILLEUR TDP
+       =====================================================
+
+       On cherche le TDP qui minimise l'écart entre les
+       quantités observées et les quantités théoriques.
+    */
+
+    function erreur(tdp) {
+
+        let total = 0;
+
+        observations.forEach(observation => {
+
+            const temps =
+                observation.unite.base *
+                Math.pow(0.95, tdp);
+
+            const theorique = duree / temps;
+
+            total += Math.pow(
+                theorique - observation.quantite,
+                2
+            );
+        });
+
+        return total;
+    }
+
+
+    let meilleurTdp = 0;
+    let meilleureErreur = Infinity;
+
+
+    /*
+       Première recherche : 0 à 200 avec un pas de 0,01.
+    */
+
+    for (let tdp = 0; tdp <= 200; tdp += 0.01) {
+
+        const e = erreur(tdp);
+
+        if (e < meilleureErreur) {
+            meilleureErreur = e;
+            meilleurTdp = tdp;
+        }
+    }
+
+
+    /* =====================================================
+       ENCADREMENT
+       =====================================================
+
+       L'incertitude vient du fait que les quantités sont
+       entières.
+
+       Pour une quantité observée Q, on considère que la
+       quantité réelle compatible est approximativement :
+
+           Q - 0,5  à  Q + 0,5
+
+       On transforme ces limites en limites de TDP.
+
+       On cherche ensuite l'intersection des intervalles
+       de toutes les unités.
+    */
+
+    let limiteBasse = -Infinity;
+    let limiteHaute = Infinity;
+
+    observations.forEach(observation => {
+
+        const base = observation.unite.base;
+        const q = observation.quantite;
+
+        const qMin = Math.max(0.000001, q - 0.5);
+        const qMax = q + 0.5;
+
+
+        /*
+           Comme la quantité produite augmente quand le TDP
+           augmente, qMin donne la borne basse et qMax
+           la borne haute après inversion de la formule.
+        */
+
+        const tdpAvecQMax = Math.log(
+            duree / (qMax * base)
+        ) / Math.log(0.95);
+
+        const tdpAvecQMin = Math.log(
+            duree / (qMin * base)
+        ) / Math.log(0.95);
+
+
+        const bas = Math.min(
+            tdpAvecQMax,
+            tdpAvecQMin
+        );
+
+        const haut = Math.max(
+            tdpAvecQMax,
+            tdpAvecQMin
+        );
+
+
+        limiteBasse = Math.max(
+            limiteBasse,
+            bas
+        );
+
+        limiteHaute = Math.min(
+            limiteHaute,
+            haut
+        );
+    });
+
+
+    /*
+       Si les intervalles ne se croisent pas exactement,
+       on utilise l'estimation la plus probable et son
+       incertitude locale.
+    */
+
+    if (
+        !Number.isFinite(limiteBasse) ||
+        !Number.isFinite(limiteHaute) ||
+        limiteBasse > limiteHaute
+    ) {
+
+        /*
+           On prend l'incertitude de l'unité qui donne
+           l'intervalle le plus petit autour du meilleur TDP.
+        */
+
+        let incertitude = Infinity;
+
+        observations.forEach(observation => {
+
+            const base = observation.unite.base;
+            const q = observation.quantite;
+
+            const bas = Math.log(
+                duree / ((q + 0.5) * base)
+            ) / Math.log(0.95);
+
+            const haut = Math.log(
+                duree / (Math.max(0.000001, q - 0.5) * base)
+            ) / Math.log(0.95);
+
+            const largeur = Math.abs(haut - bas);
+
+            if (largeur < incertitude) {
+                incertitude = largeur;
+            }
+        });
+
+
+        limiteBasse = meilleurTdp - incertitude / 2;
+        limiteHaute = meilleurTdp + incertitude / 2;
+    }
+
+
+    /* =====================================================
+       AFFICHAGE AVEC CHIFFRES SIGNIFICATIFS
+       ===================================================== */
+
+    function formatTdp(valeur) {
+
+        if (!Number.isFinite(valeur)) {
+            return "";
+        }
+
+        /*
+           On garde suffisamment de chiffres pour que
+           l'encadrement soit réellement utile, sans
+           afficher une quantité absurde de décimales.
+        */
+
+        if (Math.abs(valeur) >= 100) {
+            return valeur.toFixed(1);
+        }
+
+        if (Math.abs(valeur) >= 10) {
+            return valeur.toFixed(2);
+        }
+
+        return valeur.toFixed(2);
+    }
+
+
+    const borneBasse = Math.min(
+        limiteBasse,
+        limiteHaute
+    );
+
+    const borneHaute = Math.max(
+        limiteBasse,
+        limiteHaute
+    );
+
+
+    /*
+       La valeur probable est arrondie à l'unité.
+    */
+
+    const valeurProbable = Math.round(meilleurTdp);
+
+
+    resultat.innerHTML =
+        "TDP : " +
+        formatTdp(borneBasse) +
+        " - " +
+        formatTdp(borneHaute) +
+        "<br>" +
+        "Valeur probable : " +
+        valeurProbable;
 }
 
-function calculate(){
-  const m=parseFloat(document.getElementById("minutes").value);
-  const result=document.getElementById("result");
-  if(!Number.isFinite(m)||m<=0){
-    result.textContent="";
-    return;
-  }
-
-  const observations=[];
-  data.forEach((u,i)=>{
-    const count=parseInt(document.getElementById("u"+i).value,10);
-    if(Number.isFinite(count)&&count>0) observations.push({u,count});
-  });
-
-  if(!observations.length){
-    result.textContent="";
-    return;
-  }
-
-  // Pour chaque niveau, on cherche l'erreur totale entre le nombre observé
-  // et le nombre théorique produit pendant l'intervalle.
-  let scores=[];
-  for(let n=0;n<=200;n++){
-    let error=0;
-    observations.forEach(o=>{
-      const p=predictedCount(o.u.base,n,m);
-      error += Math.pow(p-o.count,2);
-    });
-    scores.push({n,error});
-  }
-
-  scores.sort((a,b)=>a.error-b.error);
-  const best=scores[0].n;
-
-  // Encadrement : niveaux dont l'erreur est compatible avec l'incertitude
-  // d'une unité de production par observation.
-  const compatible=[];
-  for(let n=0;n<=200;n++){
-    let ok=true;
-    observations.forEach(o=>{
-      const p=predictedCount(o.u.base,n,m);
-      if(Math.abs(p-o.count)>1.05) ok=false;
-    });
-    if(ok) compatible.push(n);
-  }
-
-  if(compatible.length){
-    const lo=Math.min(...compatible), hi=Math.max(...compatible);
-    result.innerHTML = lo===hi
-      ? `TDP : ${lo}<br>Valeur probable : ${best}`
-      : `TDP : ${lo}-${hi}<br>Valeur probable : ${best}`;
-  }else{
-    // Si aucune valeur ne satisfait toutes les unités, on donne une
-    // approximation centrée sur le meilleur ajustement.
-    const nearby=scores.filter(x=>x.error<=scores[0].error+1.5).map(x=>x.n);
-    const lo=Math.min(...nearby),hi=Math.max(...nearby);
-    result.innerHTML = lo===hi
-      ? `TDP : ≈${lo}<br>Valeur probable : ${best}`
-      : `TDP : ≈${lo}-${hi}<br>Valeur probable : ${best}`;
-  }
-}
 </script>
+
 </body>
 </html>
