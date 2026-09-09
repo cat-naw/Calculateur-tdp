@@ -3,587 +3,367 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculateur de TDP</title>
-
+<title>Floods</title>
 <style>
-    * {
-        box-sizing: border-box;
+* { box-sizing: border-box; }
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: #e8d2a8;
+    color: #3b2818;
+}
+
+.conteneur {
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.tableau {
+    width: 100%;
+    border: 2px solid #9b7046;
+    background: #f3dfb9;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.entete, .ligne {
+    display: grid;
+    grid-template-columns: 1fr 150px 145px 55px;
+    align-items: center;
+}
+
+.entete {
+    min-height: 42px;
+    background: #d8b986;
+    border-bottom: 1px solid #9b7046;
+    font-weight: bold;
+    color: #5a321c;
+}
+
+.entete div, .ligne > div {
+    padding: 7px 10px;
+}
+
+.entete div:not(:last-child),
+.ligne > div:not(:last-child) {
+    border-right: 1px solid #c6a77b;
+}
+
+.ligne {
+    min-height: 54px;
+    border-bottom: 1px solid #c6a77b;
+}
+
+.ligne:last-child {
+    border-bottom: none;
+}
+
+.ligne:nth-child(even) {
+    background: #ead2a7;
+}
+
+.ligne:nth-child(odd) {
+    background: #f4e2c1;
+}
+
+.ligne input {
+    width: 100%;
+    height: 36px;
+    text-align: center;
+    font-size: 15px;
+    border: 1px solid #b99a6c;
+    border-radius: 4px;
+    background: #fffaf0;
+    color: #3b2818;
+}
+
+.supprimer {
+    width: 32px;
+    height: 32px;
+    display: block;
+    margin: auto;
+    border: 1px solid #9b7046;
+    border-radius: 4px;
+    background: #ead2a7;
+    color: #5a321c;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.supprimer:hover {
+    background: #d8b986;
+}
+
+.plus {
+    width: 100%;
+    height: 42px;
+    margin-top: 10px;
+    border: 1px solid #315d32;
+    border-radius: 4px;
+    background: #4f8a52;
+    color: white;
+    font-size: 23px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.plus:hover, .bouton:hover {
+    background: #417544;
+}
+
+.options {
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.champ-pourcentage {
+    flex: 1;
+}
+
+.label {
+    display: block;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 7px;
+    color: #5a321c;
+}
+
+.pourcentage {
+    width: 100%;
+    height: 45px;
+    padding: 0 10px;
+    font-size: 17px;
+    text-align: center;
+    border: 1px solid #b99a6c;
+    border-radius: 4px;
+    background: #fffaf0;
+    color: #3b2818;
+}
+
+.bouton {
+    width: 190px;
+    height: 45px;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+    border: 1px solid #315d32;
+    border-radius: 4px;
+    background: #4f8a52;
+    color: white;
+}
+
+#resultat {
+    margin-top: 20px;
+    font-size: 19px;
+    line-height: 1.6;
+    font-weight: bold;
+    color: #5a321c;
+}
+
+.message {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #6b4425;
+}
+
+@media (max-width: 650px) {
+    body { padding: 12px; }
+
+    .entete, .ligne {
+        grid-template-columns: 1fr 85px 105px 43px;
     }
 
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 20px;
-        background: #e8d2a8;
-        color: #3b2818;
+    .entete div, .ligne > div {
+        padding: 6px 4px;
     }
 
-    h1 {
-        text-align: center;
-        font-size: 27px;
-        margin: 0 0 25px 0;
-        color: #5a321c;
-        font-weight: bold;
+    .entete {
+        font-size: 13px;
     }
 
-    .conteneur {
-        display: flex;
-        gap: 25px;
-        max-width: 850px;
-        margin: auto;
-        align-items: flex-start;
+    .ligne input {
+        font-size: 13px;
     }
 
-    /* TABLEAU DES UNITÉS */
-
-    .tableau {
-        flex: 1;
-        border: 2px solid #9b7046;
-        background: #f3dfb9;
-        border-radius: 3px;
-        overflow: hidden;
-    }
-
-    .ligne {
-        display: grid;
-        grid-template-columns: 1fr 100px;
-        border-bottom: 1px solid #c6a77b;
-        min-height: 42px;
-        align-items: center;
-    }
-
-    .ligne:last-child {
-        border-bottom: none;
-    }
-
-    .ligne:nth-child(odd) {
-        background: #ead2a7;
-    }
-
-    .ligne:nth-child(even) {
-        background: #f4e2c1;
-    }
-
-    .nom-unite {
-        padding: 7px 10px;
-        font-size: 15px;
-    }
-
-    .quantite {
-        width: 90px;
-        height: 32px;
-        margin: auto;
-        text-align: center;
-        font-size: 16px;
-        border: 1px solid #b99a6c;
-        border-radius: 4px;
-        background: #fffaf0;
-        color: #3b2818;
-    }
-
-    /* PARTIE DROITE */
-
-    .droite {
-        width: 245px;
-    }
-
-    .titre-section {
-        font-size: 19px;
-        font-weight: bold;
-        margin-bottom: 10px;
-        color: #5a321c;
-    }
-
-    .temps {
-        display: flex;
-        justify-content: center;
-        gap: 5px;
-        margin-bottom: 20px;
-    }
-
-    .champ-temps {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .label-temps {
-        font-size: 14px;
-        font-weight: bold;
-        margin-bottom: 5px;
-        color: #5a321c;
-    }
-
-    .temps input {
-        width: 62px;
-        height: 40px;
-        text-align: center;
-        font-size: 17px;
-        border: 1px solid #b99a6c;
-        border-radius: 4px;
-        background: #fffaf0;
-        color: #3b2818;
-    }
-
-    .separateur {
-        font-size: 20px;
-        font-weight: bold;
-        margin-top: 27px;
-        color: #5a321c;
+    .options {
+        gap: 10px;
     }
 
     .bouton {
-        width: 100%;
-        height: 45px;
-        font-size: 17px;
-        font-weight: bold;
-        cursor: pointer;
-        border: 1px solid #315d32;
-        border-radius: 4px;
-        background: #4f8a52;
-        color: white;
+        width: 145px;
+        font-size: 15px;
     }
 
-    .bouton:hover {
-        background: #417544;
+    .label {
+        font-size: 14px;
     }
-
-    /* RÉSULTAT */
-
-    #resultat {
-        margin-top: 20px;
-        font-size: 19px;
-        line-height: 1.6;
-        font-weight: bold;
-        color: #5a321c;
-    }
-
-    @media (max-width: 650px) {
-
-        body {
-            padding: 12px;
-        }
-
-        .conteneur {
-            gap: 12px;
-        }
-
-        .droite {
-            width: 180px;
-        }
-
-        .ligne {
-            grid-template-columns: 1fr 70px;
-        }
-
-        .quantite {
-            width: 62px;
-        }
-
-        .nom-unite {
-            font-size: 14px;
-        }
-
-        .temps {
-            gap: 2px;
-        }
-
-        .temps input {
-            width: 48px;
-        }
-
-        .label-temps {
-            font-size: 12px;
-        }
-
-        .separateur {
-            font-size: 18px;
-        }
-    }
+}
 </style>
 </head>
 
 <body>
 
-<h1>Calculateur de TDP</h1>
-
 <div class="conteneur">
 
-    <div class="tableau" id="tableauUnites"></div>
+    <div class="tableau" id="tableauFloods">
+        <div class="entete">
+            <div>TDC gagné</div>
+            <div>Date</div>
+            <div>Heure</div>
+            <div></div>
+        </div>
+    </div>
 
-    <div class="droite">
+    <button class="plus" id="boutonPlus" onclick="ajouterLigne()">+</button>
 
-        <div class="titre-section">Temps</div>
-
-        <div class="temps">
-
-            <div class="champ-temps">
-                <div class="label-temps">Heure</div>
-                <input id="heures" type="number" min="0" step="1" value="0">
-            </div>
-
-            <span class="separateur">:</span>
-
-            <div class="champ-temps">
-                <div class="label-temps">Minute</div>
-                <input id="minutes" type="number" min="0" max="59" step="1" value="0">
-            </div>
-
-            <span class="separateur">:</span>
-
-            <div class="champ-temps">
-                <div class="label-temps">Seconde</div>
-                <input id="secondes" type="number" min="0" max="59" step="1" value="0">
-            </div>
-
+    <div class="options">
+        <div class="champ-pourcentage">
+            <label class="label" for="pourcentage">Pourcentage à donner</label>
+            <input class="pourcentage" id="pourcentage" type="number"
+                   min="0" max="100" step="0.01" value="0">
         </div>
 
         <button class="bouton" onclick="calculer()">Calculer</button>
-
-        <div id="resultat"></div>
-
     </div>
+
+    <div id="resultat"></div>
+    <div class="message" id="message"></div>
 
 </div>
 
-
 <script>
+const MAX_LIGNES = 15;
+let nombreLignes = 0;
 
-/* =========================================================
-   UNITÉS
-   ========================================================= */
+function ajouterLigne() {
+    if (nombreLignes >= MAX_LIGNES) return;
 
-const unites = [
-    ["Esclave", 4.4299, 84],
-    ["Maître esclave", 6.6448, 84],
-    ["Jeune soldate", 7.7523, 84],
-    ["Soldate", 9.9672, 84],
-    ["Soldate d'élite", 13.2897, 84],
-    ["Gardienne", 13.2897, 84],
-    ["Gardienne d'élite", 17.7195, 84],
-    ["Tirailleuse", 15.5046, 84],
-    ["Tirailleuse d'élite", 19.9345, 84],
-    ["Jeune légionnaire", 24.3644, 84],
-    ["Légionnaire", 33.2241, 84],
-    ["Légionnaire d'élite", 38.7615, 84],
-    ["Jeune tank", 39.8690, 84],
-    ["Tank", 47.4629, 93],
-    ["Tank d'élite", 58.3315, 93]
-];
+    nombreLignes++;
 
-
-/* =========================================================
-   CALCUL DES TEMPS DE BASE
-   ========================================================= */
-
-const donnees = unites.map(unite => ({
-    nom: unite[0],
-    base: unite[1] / Math.pow(0.95, unite[2])
-}));
-
-
-/* =========================================================
-   CRÉATION DU TABLEAU
-   ========================================================= */
-
-const tableau = document.getElementById("tableauUnites");
-
-donnees.forEach((unite, index) => {
-
+    const tableau = document.getElementById("tableauFloods");
     const ligne = document.createElement("div");
     ligne.className = "ligne";
+    ligne.dataset.id = nombreLignes;
 
-    const nom = document.createElement("div");
-    nom.className = "nom-unite";
-    nom.textContent = unite.nom;
+    const tdc = document.createElement("div");
+    const inputTdc = document.createElement("input");
+    inputTdc.type = "number";
+    inputTdc.min = "0";
+    inputTdc.step = "0.01";
+    inputTdc.placeholder = "TDC";
+    inputTdc.className = "tdc";
+    tdc.appendChild(inputTdc);
 
-    const input = document.createElement("input");
-    input.className = "quantite";
-    input.type = "number";
-    input.min = "0";
-    input.step = "1";
-    input.value = "0";
-    input.id = "unite-" + index;
+    const date = document.createElement("div");
+    const inputDate = document.createElement("input");
+    inputDate.type = "date";
+    inputDate.className = "date";
+    date.appendChild(inputDate);
 
-    ligne.appendChild(nom);
-    ligne.appendChild(input);
+    const heure = document.createElement("div");
+    const inputHeure = document.createElement("input");
+    inputHeure.type = "time";
+    inputHeure.className = "heure";
+    inputHeure.step = "1";
+    heure.appendChild(inputHeure);
+
+    const action = document.createElement("div");
+    const supprimer = document.createElement("button");
+    supprimer.className = "supprimer";
+    supprimer.textContent = "×";
+    supprimer.title = "Supprimer ce flood";
+    supprimer.onclick = function() {
+        ligne.remove();
+        nombreLignes--;
+        mettreAJourBoutonPlus();
+    };
+    action.appendChild(supprimer);
+
+    ligne.appendChild(tdc);
+    ligne.appendChild(date);
+    ligne.appendChild(heure);
+    ligne.appendChild(action);
 
     tableau.appendChild(ligne);
-});
-
-
-/* =========================================================
-   CALCUL
-   ========================================================= */
-
-function calculer() {
-
-    const heures =
-        Number(document.getElementById("heures").value) || 0;
-
-    const minutes =
-        Number(document.getElementById("minutes").value) || 0;
-
-    const secondes =
-        Number(document.getElementById("secondes").value) || 0;
-
-    const duree =
-        heures * 3600 +
-        minutes * 60 +
-        secondes;
-
-    const resultat =
-        document.getElementById("resultat");
-
-
-    if (duree <= 0) {
-        resultat.innerHTML = "";
-        return;
-    }
-
-
-    /* Récupération des unités observées */
-
-    const observations = [];
-
-    donnees.forEach((unite, index) => {
-
-        const quantite =
-            Number(
-                document.getElementById("unite-" + index).value
-            ) || 0;
-
-        if (quantite > 0) {
-
-            observations.push({
-                unite: unite,
-                quantite: quantite
-            });
-
-        }
-    });
-
-
-    if (observations.length === 0) {
-        resultat.innerHTML = "";
-        return;
-    }
-
-
-    /* =====================================================
-       ERREUR POUR UN TDP DONNÉ
-       ===================================================== */
-
-    function erreur(tdp) {
-
-        let total = 0;
-
-        observations.forEach(observation => {
-
-            const temps =
-                observation.unite.base *
-                Math.pow(0.95, tdp);
-
-            const theorique =
-                duree / temps;
-
-            total += Math.pow(
-                theorique - observation.quantite,
-                2
-            );
-        });
-
-        return total;
-    }
-
-
-    /* =====================================================
-       RECHERCHE DU TDP LE PLUS PROBABLE
-       ===================================================== */
-
-    let meilleurTdp = 0;
-    let meilleureErreur = Infinity;
-
-    for (
-        let tdp = 0;
-        tdp <= 200;
-        tdp += 0.01
-    ) {
-
-        const e = erreur(tdp);
-
-        if (e < meilleureErreur) {
-
-            meilleureErreur = e;
-            meilleurTdp = tdp;
-
-        }
-    }
-
-
-    /* =====================================================
-       ENCADREMENT DÛ AUX QUANTITÉS ENTIÈRES
-       ===================================================== */
-
-    let limiteBasse = -Infinity;
-    let limiteHaute = Infinity;
-
-
-    observations.forEach(observation => {
-
-        const base = observation.unite.base;
-        const q = observation.quantite;
-
-        /*
-           Une quantité entière Q correspond à une quantité
-           réelle comprise entre Q-0,5 et Q+0,5.
-        */
-
-        const qMin =
-            Math.max(0.000001, q - 0.5);
-
-        const qMax =
-            q + 0.5;
-
-
-        const tdpBasse =
-            Math.log(
-                duree / (qMax * base)
-            ) / Math.log(0.95);
-
-
-        const tdpHaute =
-            Math.log(
-                duree / (qMin * base)
-            ) / Math.log(0.95);
-
-
-        const bas =
-            Math.min(tdpBasse, tdpHaute);
-
-        const haut =
-            Math.max(tdpBasse, tdpHaute);
-
-
-        limiteBasse =
-            Math.max(limiteBasse, bas);
-
-        limiteHaute =
-            Math.min(limiteHaute, haut);
-    });
-
-
-    /* =====================================================
-       SI LES INTERVALLES NE SE CROISENT PAS
-       ===================================================== */
-
-    if (
-        !Number.isFinite(limiteBasse) ||
-        !Number.isFinite(limiteHaute) ||
-        limiteBasse > limiteHaute
-    ) {
-
-        let incertitude = Infinity;
-
-        observations.forEach(observation => {
-
-            const base = observation.unite.base;
-            const q = observation.quantite;
-
-
-            const bas =
-                Math.log(
-                    duree / ((q + 0.5) * base)
-                ) / Math.log(0.95);
-
-
-            const haut =
-                Math.log(
-                    duree /
-                    (Math.max(0.000001, q - 0.5) * base)
-                ) / Math.log(0.95);
-
-
-            const largeur =
-                Math.abs(haut - bas);
-
-
-            if (largeur < incertitude) {
-                incertitude = largeur;
-            }
-
-        });
-
-
-        limiteBasse =
-            meilleurTdp - incertitude / 2;
-
-        limiteHaute =
-            meilleurTdp + incertitude / 2;
-    }
-
-
-    /* =====================================================
-       ARRONDI DES CHIFFRES SIGNIFICATIFS
-       ===================================================== */
-
-    function formatTdp(valeur) {
-
-        if (!Number.isFinite(valeur)) {
-            return "";
-        }
-
-        /*
-           Deux décimales permettent de conserver
-           suffisamment de précision pour l'encadrement.
-        */
-
-        return valeur.toFixed(2);
-    }
-
-
-    const borneBasse =
-        Math.min(limiteBasse, limiteHaute);
-
-    const borneHaute =
-        Math.max(limiteBasse, limiteHaute);
-
-
-    const valeurProbable =
-        Math.round(meilleurTdp);
-
-
-    /* =====================================================
-       AFFICHAGE
-       ===================================================== */
-
-    /*
-       Si les deux bornes donnent le même nombre entier,
-       on affiche simplement TDP.
-    */
-
-    const entierBasse = Math.floor(borneBasse);
-    const entierHaute = Math.ceil(borneHaute);
-
-
-    if (entierBasse === entierHaute) {
-
-        resultat.innerHTML =
-            "TDP : " + entierBasse;
-
-    } else {
-
-        resultat.innerHTML =
-            "TDP : " +
-            entierBasse +
-            "-" +
-            entierHaute +
-            "<br>" +
-            "Valeur probable : " +
-            valeurProbable;
-    }
+    mettreAJourBoutonPlus();
 }
 
+function mettreAJourBoutonPlus() {
+    const bouton = document.getElementById("boutonPlus");
+    bouton.disabled = nombreLignes >= MAX_LIGNES;
+    bouton.style.opacity = bouton.disabled ? "0.5" : "1";
+    bouton.style.cursor = bouton.disabled ? "default" : "pointer";
+}
+
+function calculer() {
+    const lignes = document.querySelectorAll(".ligne");
+    const maintenant = new Date();
+
+    const pourcentage =
+        Number(document.getElementById("pourcentage").value);
+
+    const resultat = document.getElementById("resultat");
+    const message = document.getElementById("message");
+
+    resultat.innerHTML = "";
+    message.textContent = "";
+
+    if (!Number.isFinite(pourcentage) || pourcentage < 0 || pourcentage > 100) {
+        message.textContent = "Le pourcentage doit être compris entre 0 et 100.";
+        return;
+    }
+
+    let totalRss = 0;
+    let floodsValides = 0;
+
+    lignes.forEach(ligne => {
+        const tdc = Number(ligne.querySelector(".tdc").value);
+        const date = ligne.querySelector(".date").value;
+        const heure = ligne.querySelector(".heure").value;
+
+        if (!tdc || tdc <= 0 || !date || !heure) return;
+
+        const debut = new Date(date + "T" + heure);
+
+        if (isNaN(debut.getTime())) return;
+
+        if (debut > maintenant) return;
+
+        const secondes = (maintenant - debut) / 1000;
+
+        // 1 TDC produit 1 RSS par heure.
+        totalRss += tdc * secondes / 3600;
+        floodsValides++;
+    });
+
+    if (floodsValides === 0) {
+        message.textContent =
+            "Renseigne au moins un flood avec un TDC, une date et une heure valides.";
+        return;
+    }
+
+    const aDonner = totalRss * pourcentage / 100;
+
+    resultat.innerHTML =
+        "RSS produits : " + formatNombre(totalRss) +
+        "<br>À donner (" + formatNombre(pourcentage) + " %) : " +
+        formatNombre(aDonner);
+}
+
+function formatNombre(nombre) {
+    return nombre.toLocaleString("fr-FR", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    });
+}
+
+// Une seule ligne au démarrage.
+ajouterLigne();
 </script>
 
 </body>
