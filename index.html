@@ -251,59 +251,114 @@
 
 /* =========================================================
    UNITÉS
+   TEMPS À TDP 0 EN SECONDES
    ========================================================= */
 
 const unites = [
-    ["Esclave", 4.4299, 83],
-    ["Maître esclave", 6.6448, 83],
-    ["Jeune soldate", 7.7523, 83],
-    ["Soldate", 9.9672, 83],
-    ["Soldate d'élite", 13.2897, 83],
-    ["Gardienne", 13.2897, 83],
-    ["Gardienne d'élite", 17.7195, 83],
-    ["Tirailleuse", 15.5046, 83],
-    ["Tirailleuse d'élite", 19.9345, 83],
-    ["Jeune légionnaire", 24.3644, 83],
-    ["Légionnaire", 33.2241, 83],
-    ["Légionnaire d'élite", 38.7615, 83],
-    ["Jeune tank", 39.8690, 83],
-    ["Tank", 47.4629, 93],
-    ["Tank d'élite", 58.3315, 93]
+    ["Esclave", 336],
+    ["Maître esclave", 504],
+    ["Jeune soldate", 588],
+    ["Soldate", 756],
+    ["Soldate d'élite", 1008],
+    ["Gardienne", 1008],
+    ["Gardienne d'élite", 1344],
+    ["Tirailleuse", 1176],
+    ["Tirailleuse d'élite", 1512],
+    ["Jeune légionnaire", 1848],
+    ["Légionnaire", 2520],
+    ["Légionnaire d'élite", 2940],
+    ["Jeune tank", 3024],
+    ["Tank", 5712],
+    ["Tank d'élite", 7020]
 ];
 
 
 /* =========================================================
-   CALCUL DES TEMPS DE BASE
+   PARAMÈTRES
    ========================================================= */
 
-const donnees = unites.map(unite => ({
-    nom: unite[0],
-    base: unite[1] / Math.pow(0.95, unite[2])
-}));
+const MAX_TDP = 250;
+
+
+/* =========================================================
+   ARRONDI À 4 DÉCIMALES
+   ========================================================= */
+
+function arrondi4(valeur) {
+    return Math.round((valeur + 1e-10) * 10000) / 10000;
+}
+
+
+/* =========================================================
+   CRÉATION DES TEMPS TDP
+   =========================================================
+
+   Exemple :
+
+   TDP 0 = 336
+   TDP 1 = 336 × 0,95 = 319,2
+   TDP 2 = 319,2 × 0,95 = 303,24
+   TDP 3 = 303,24 × 0,95 = 288,078
+
+   Le résultat arrondi est réutilisé au niveau suivant.
+   ========================================================= */
+
+const donnees = unites.map(unite => {
+
+    const temps = [];
+
+    temps[0] = arrondi4(unite[1]);
+
+    for (let tdp = 1; tdp <= MAX_TDP; tdp++) {
+
+        temps[tdp] =
+            arrondi4(temps[tdp - 1] * 0.95);
+
+        if (temps[tdp] <= 0) {
+            break;
+        }
+    }
+
+    return {
+        nom: unite[0],
+        base: unite[1],
+        temps: temps
+    };
+});
 
 
 /* =========================================================
    CRÉATION DU TABLEAU
    ========================================================= */
 
-const tableau = document.getElementById("tableauUnites");
+const tableau =
+    document.getElementById("tableauUnites");
 
 donnees.forEach((unite, index) => {
 
-    const ligne = document.createElement("div");
+    const ligne =
+        document.createElement("div");
+
     ligne.className = "ligne";
 
-    const nom = document.createElement("div");
+
+    const nom =
+        document.createElement("div");
+
     nom.className = "nom-unite";
     nom.textContent = unite.nom;
 
-    const input = document.createElement("input");
+
+    const input =
+        document.createElement("input");
+
     input.className = "quantite";
     input.type = "number";
     input.min = "0";
     input.step = "1";
     input.value = "0";
     input.id = "unite-" + index;
+
 
     ligne.appendChild(nom);
     ligne.appendChild(input);
@@ -313,24 +368,86 @@ donnees.forEach((unite, index) => {
 
 
 /* =========================================================
+   ERREUR POUR UN TDP ENTIER
+   ========================================================= */
+
+function calculerErreur(tdp, observations, duree) {
+
+    let erreur = 0;
+
+
+    observations.forEach(observation => {
+
+        const temps =
+            observation.unite.temps[tdp];
+
+
+        if (
+            temps === undefined ||
+            temps <= 0
+        ) {
+            erreur = Infinity;
+            return;
+        }
+
+
+        /*
+           Nombre théorique d'unités pendant la durée.
+        */
+
+        const theorique =
+            duree / temps;
+
+
+        /*
+           Différence entre le nombre théorique
+           et le nombre réellement observé.
+        */
+
+        const difference =
+            theorique - observation.quantite;
+
+
+        /*
+           Erreur quadratique.
+        */
+
+        erreur +=
+            difference * difference;
+    });
+
+
+    return erreur;
+}
+
+
+/* =========================================================
    CALCUL
    ========================================================= */
 
 function calculer() {
 
     const heures =
-        Number(document.getElementById("heures").value) || 0;
+        Number(
+            document.getElementById("heures").value
+        ) || 0;
 
     const minutes =
-        Number(document.getElementById("minutes").value) || 0;
+        Number(
+            document.getElementById("minutes").value
+        ) || 0;
 
     const secondes =
-        Number(document.getElementById("secondes").value) || 0;
+        Number(
+            document.getElementById("secondes").value
+        ) || 0;
+
 
     const duree =
         heures * 3600 +
         minutes * 60 +
         secondes;
+
 
     const resultat =
         document.getElementById("resultat");
@@ -342,16 +459,22 @@ function calculer() {
     }
 
 
-    /* Récupération des unités observées */
+    /* =====================================================
+       RÉCUPÉRATION DES OBSERVATIONS
+       ===================================================== */
 
     const observations = [];
+
 
     donnees.forEach((unite, index) => {
 
         const quantite =
             Number(
-                document.getElementById("unite-" + index).value
+                document.getElementById(
+                    "unite-" + index
+                ).value
             ) || 0;
+
 
         if (quantite > 0) {
 
@@ -371,50 +494,36 @@ function calculer() {
 
 
     /* =====================================================
-       ERREUR POUR UN TDP DONNÉ
-       ===================================================== */
-
-    function erreur(tdp) {
-
-        let total = 0;
-
-        observations.forEach(observation => {
-
-            const temps =
-                observation.unite.base *
-                Math.pow(0.95, tdp);
-
-            const theorique =
-                duree / temps;
-
-            total += Math.pow(
-                theorique - observation.quantite,
-                2
-            );
-        });
-
-        return total;
-    }
-
-
-    /* =====================================================
-       RECHERCHE DU TDP LE PLUS PROBABLE
+       1. TEST DE TOUS LES TDP ENTIERS
        ===================================================== */
 
     let meilleurTdp = 0;
     let meilleureErreur = Infinity;
 
+
+    const erreurs = [];
+
+
     for (
         let tdp = 0;
-        tdp <= 200;
-        tdp += 0.01
+        tdp <= MAX_TDP;
+        tdp++
     ) {
 
-        const e = erreur(tdp);
+        const erreur =
+            calculerErreur(
+                tdp,
+                observations,
+                duree
+            );
 
-        if (e < meilleureErreur) {
 
-            meilleureErreur = e;
+        erreurs[tdp] = erreur;
+
+
+        if (erreur < meilleureErreur) {
+
+            meilleureErreur = erreur;
             meilleurTdp = tdp;
 
         }
@@ -422,165 +531,228 @@ function calculer() {
 
 
     /* =====================================================
-       ENCADREMENT DÛ AUX QUANTITÉS ENTIÈRES
+       2. RECHERCHE DES TDP COMPATIBLES
+       =====================================================
+
+       Une quantité entière Q correspond à une valeur
+       théorique proche de Q.
+
+       On accepte une différence maximale de 0,5 unité.
+
+       Exemple :
+
+       quantité observée = 100
+
+       théorique = 99,6  → compatible
+       théorique = 100,3 → compatible
+       théorique = 101,2 → incompatible
        ===================================================== */
 
-    let limiteBasse = -Infinity;
-    let limiteHaute = Infinity;
+    const tdpCompatibles = [];
 
 
-    observations.forEach(observation => {
-
-        const base = observation.unite.base;
-        const q = observation.quantite;
-
-        /*
-           Une quantité entière Q correspond à une quantité
-           réelle comprise entre Q-0,5 et Q+0,5.
-        */
-
-        const qMin =
-            Math.max(0.000001, q - 0.5);
-
-        const qMax =
-            q + 0.5;
-
-
-        const tdpBasse =
-            Math.log(
-                duree / (qMax * base)
-            ) / Math.log(0.95);
-
-
-        const tdpHaute =
-            Math.log(
-                duree / (qMin * base)
-            ) / Math.log(0.95);
-
-
-        const bas =
-            Math.min(tdpBasse, tdpHaute);
-
-        const haut =
-            Math.max(tdpBasse, tdpHaute);
-
-
-        limiteBasse =
-            Math.max(limiteBasse, bas);
-
-        limiteHaute =
-            Math.min(limiteHaute, haut);
-    });
-
-
-    /* =====================================================
-       SI LES INTERVALLES NE SE CROISENT PAS
-       ===================================================== */
-
-    if (
-        !Number.isFinite(limiteBasse) ||
-        !Number.isFinite(limiteHaute) ||
-        limiteBasse > limiteHaute
+    for (
+        let tdp = 0;
+        tdp <= MAX_TDP;
+        tdp++
     ) {
 
-        let incertitude = Infinity;
+        let compatible = true;
+
 
         observations.forEach(observation => {
 
-            const base = observation.unite.base;
-            const q = observation.quantite;
+            const temps =
+                observation.unite.temps[tdp];
 
 
-            const bas =
-                Math.log(
-                    duree / ((q + 0.5) * base)
-                ) / Math.log(0.95);
+            if (
+                temps === undefined ||
+                temps <= 0
+            ) {
+
+                compatible = false;
+                return;
+
+            }
 
 
-            const haut =
-                Math.log(
-                    duree /
-                    (Math.max(0.000001, q - 0.5) * base)
-                ) / Math.log(0.95);
+            const theorique =
+                duree / temps;
 
 
-            const largeur =
-                Math.abs(haut - bas);
+            const difference =
+                Math.abs(
+                    theorique -
+                    observation.quantite
+                );
 
 
-            if (largeur < incertitude) {
-                incertitude = largeur;
+            if (difference > 0.5) {
+                compatible = false;
             }
 
         });
 
 
-        limiteBasse =
-            meilleurTdp - incertitude / 2;
-
-        limiteHaute =
-            meilleurTdp + incertitude / 2;
+        if (compatible) {
+            tdpCompatibles.push(tdp);
+        }
     }
 
 
     /* =====================================================
-       ARRONDI DES CHIFFRES SIGNIFICATIFS
+       3. ENCADREMENT
        ===================================================== */
 
-    function formatTdp(valeur) {
+    let borneBasse;
+    let borneHaute;
 
-        if (!Number.isFinite(valeur)) {
-            return "";
-        }
+
+    if (tdpCompatibles.length > 0) {
 
         /*
-           Deux décimales permettent de conserver
-           suffisamment de précision pour l'encadrement.
+           Il existe des TDP qui correspondent
+           simultanément à toutes les observations.
         */
 
-        return valeur.toFixed(2);
+        borneBasse =
+            Math.min(...tdpCompatibles);
+
+        borneHaute =
+            Math.max(...tdpCompatibles);
+
+    } else {
+
+        /*
+           Si aucune valeur ne correspond exactement
+           à toutes les quantités, on prend les TDP
+           les plus proches du meilleur résultat.
+        */
+
+        borneBasse = meilleurTdp;
+        borneHaute = meilleurTdp;
+
+
+        /*
+           Recherche du meilleur TDP juste en dessous.
+        */
+
+        let erreurAvant = Infinity;
+        let tdpAvant = null;
+
+
+        for (
+            let tdp = 0;
+            tdp < meilleurTdp;
+            tdp++
+        ) {
+
+            if (
+                erreurs[tdp] < erreurAvant
+            ) {
+
+                erreurAvant = erreurs[tdp];
+                tdpAvant = tdp;
+
+            }
+        }
+
+
+        /*
+           Recherche du meilleur TDP juste au-dessus.
+        */
+
+        let erreurApres = Infinity;
+        let tdpApres = null;
+
+
+        for (
+            let tdp = meilleurTdp + 1;
+            tdp <= MAX_TDP;
+            tdp++
+        ) {
+
+            if (
+                erreurs[tdp] < erreurApres
+            ) {
+
+                erreurApres = erreurs[tdp];
+                tdpApres = tdp;
+
+            }
+        }
+
+
+        /*
+           On n'élargit l'encadrement que si le voisin
+           est réellement proche du meilleur résultat.
+        */
+
+        const seuil =
+            meilleureErreur * 2 + 0.25;
+
+
+        if (
+            tdpAvant !== null &&
+            erreurAvant <= seuil
+        ) {
+
+            borneBasse =
+                Math.min(
+                    borneBasse,
+                    tdpAvant
+                );
+
+        }
+
+
+        if (
+            tdpApres !== null &&
+            erreurApres <= seuil
+        ) {
+
+            borneHaute =
+                Math.max(
+                    borneHaute,
+                    tdpApres
+                );
+
+        }
     }
 
 
-    const borneBasse =
-        Math.min(limiteBasse, limiteHaute);
-
-    const borneHaute =
-        Math.max(limiteBasse, limiteHaute);
-
+    /* =====================================================
+       4. VALEUR PROBABLE
+       ===================================================== */
 
     const valeurProbable =
-        Math.round(meilleurTdp);
+        meilleurTdp;
 
 
     /* =====================================================
-       AFFICHAGE
+       5. AFFICHAGE
        ===================================================== */
 
-    /*
-       Si les deux bornes donnent le même nombre entier,
-       on affiche simplement TDP.
-    */
-
-    const entierBasse = Math.floor(borneBasse);
-    const entierHaute = Math.ceil(borneHaute);
-
-
-    if (entierBasse === entierHaute) {
+    if (
+        borneBasse === borneHaute
+    ) {
 
         resultat.innerHTML =
-            "TDP : " + entierBasse;
+            "TDP : " +
+            valeurProbable;
 
     } else {
 
         resultat.innerHTML =
             "TDP : " +
-            entierBasse +
+            borneBasse +
             "-" +
-            entierHaute +
+            borneHaute +
             "<br>" +
             "Valeur probable : " +
             valeurProbable;
+
     }
 }
 
